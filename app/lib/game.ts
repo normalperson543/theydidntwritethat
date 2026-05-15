@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export function initGame() {
+export async function initGame() {
   const client = new OpenAI({
     apiKey: process.env["OPENAI_KEY"],
     baseURL: process.env["OPENAI_BASEURL"],
