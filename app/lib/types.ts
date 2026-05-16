@@ -1,6 +1,8 @@
-type GameQuote = {
-  quote: string,
-  author: string,
-  realQuote: string,
-  isFake: boolean
-}
+import { Prisma } from "../generated/prisma/client"
+
+export type GameWithQuotes = Prisma.GameGetPayload<{
+  include: {
+    realQuotes: true,
+    fakeQuotes: true
+  }
+}>
