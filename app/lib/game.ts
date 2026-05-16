@@ -5,33 +5,30 @@ import { redirect } from "next/navigation";
 export async function initGame() {
   const quoteCount = await prisma.quote.count();
   const quotes = [];
-  for (let i = 0; i < 5; i++) {
+  const quotesCount = 10;
+  let quotesConcat = "";
+  for (let i = 0; i < quotesCount; i++) {
     const item = await prisma.quote.findFirst({
       skip: Math.floor(Math.random() * quoteCount),
     });
     quotes.push(item);
+    quotesConcat += `${item}\n`
   }
-  console.log(quotes)
+  
   const client = new OpenAI({
     apiKey: process.env["OPENAI_KEY"],
     baseURL: process.env["OPENAI_BASEURL"],
   });
   const response = await client.responses.create({
     model: process.env["OPENAI_MODEL"],
-    input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Separate each quote in between with two slashes ("//"), and keep the quotes in a separate line. Do NOT add explanations.\n
-      ${quotes[0]?.quote}\n
-      ${quotes[1]?.quote}\n
-      ${quotes[2]?.quote}\n
-      ${quotes[3]?.quote}\n
-      ${quotes[4]?.quote}
-    `,
+    input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Keep the same length as the original quote. Separate each quote in between with two slashes ("//"), and keep the quotes in a separate line. Do NOT add explanations. Do NOT surround the rephrased quotes with quotation marks. Do NOT add additional numbers, bullet points, or lists to your answer.\n${quotesConcat}`,
   });
-  const out = response.output_text;
+  const out = response.output_text.replace('"', "").replace("–", "-").replace("—","-");
   console.log(out)
   const outQuotes = out.split("//");
   console.log(outQuotes)
   const game = await prisma.game.create({});
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < quotesCount; i++) {
     if (Math.random() > 0.5) {
       console.log(outQuotes[i])
       await prisma.fakeQuote.create({
