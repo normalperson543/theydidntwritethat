@@ -1,24 +1,35 @@
-'use client'
-import { CheckIcon, ClockIcon, XIcon } from "lucide-react";
+"use client";
+import { CheckIcon, ClockIcon, MessageSquareIcon, XIcon } from "lucide-react";
 import CircleProgress from "../components/circle-progress";
 import { pfDisplay } from "../lib/fonts";
 import { PrimaryButton } from "../components/button";
-import { Game } from "../generated/prisma/client";
+import { FakeQuote, Game, Quote } from "../generated/prisma/client";
 import { useState } from "react";
 import { GameWithQuotes } from "../lib/types";
 
-export default function GameUI({gameInfo}: {gameInfo: GameWithQuotes}) {
+export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
   const [currentQuote, setCurrentQuote] = useState(0);
-  const [currentGame, setCurrentGame] = useState( [...gameInfo.realQuotes, ...gameInfo.fakeQuotes].sort(() => Math.random() - 0.5)) // this used ai
-  const [progressStatus, setProgressStatus] = useState([0,0,0,0,0]);
+  const [answerType, setAnswerType] = useState(false);
+  const [progressStatus, setProgressStatus] = useState([0, 0, 0, 0, 0]);
 
   function handleAnswer(answeredReal: boolean) {
-    if ("realQuote" in currentGame[currentQuote]) {
+    if (
+      ("realQuote" in quotes[currentQuote] && answeredReal) ||
+      (!("realQuote" in quotes[currentQuote]) && !answeredReal)
+    ) {
       // wrong
-      progressStatus[currentQuote] = 2
-    } else {
+      const tempProgressStatus = [...progressStatus];
+      tempProgressStatus[currentQuote] = 2;
+      setProgressStatus(tempProgressStatus);
+    }
+    if (
+      (!("realQuote" in quotes[currentQuote]) && answeredReal) ||
+      ("realQuote" in quotes[currentQuote] && !answeredReal)
+    ) {
       // correct
-      progressStatus[currentQuote] = 1
+      const tempProgressStatus = [...progressStatus];
+      tempProgressStatus[currentQuote] = 1;
+      setProgressStatus(tempProgressStatus);
     }
   }
   return (
@@ -33,25 +44,38 @@ export default function GameUI({gameInfo}: {gameInfo: GameWithQuotes}) {
           0:09
         </div>
         <div className={`text-3xl font-bold ${pfDisplay.className}`}>
-          This is a quote
+          {quotes[currentQuote].quote}
         </div>
-        <div className="text-xl text-right">Ernest Hemingway</div>
-        <div className="flex justify-around items-center w-full">
-          <div className="flex flex-col gap-2">
-            <PrimaryButton>
-              <CheckIcon />
-              This is real
-            </PrimaryButton>
-            I think Ernest Hemingway said this quote.
-          </div>
-          <div className="flex flex-col gap-2">
-            <PrimaryButton>
-              <XIcon />
-              This is fake
-            </PrimaryButton>
-            Ernest Hemingway never said this quote.
-          </div>
+        <div className="text-xl text-right">
+          {quotes[currentQuote].author}
         </div>
+        {progressStatus[currentQuote] === 0 && (
+          <div className="flex justify-around items-center w-full">
+            <div className="flex flex-col gap-2">
+              <PrimaryButton onClick={() => handleAnswer(true)}>
+                <CheckIcon />
+                This is real
+              </PrimaryButton>
+              I think {quotes[currentQuote].author} said this quote.
+            </div>
+            <div className="flex flex-col gap-2">
+              <PrimaryButton onClick={() => handleAnswer(false)}>
+                <XIcon />
+                This is fake
+              </PrimaryButton>
+              {quotes[currentQuote].author} never said this quote.
+            </div>
+          </div>
+        )}
+        {progressStatus[currentQuote] === 1 && (
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4 items-center text-gray-700">
+              <MessageSquareIcon />
+              <p>you said this quote was {answerType ? "real" : "fake"}</p>
+            </div>
+            
+          </div>
+        )}
       </div>
     </div>
   );
