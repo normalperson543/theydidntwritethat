@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { DM_Sans, Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
+import { dmSans } from "./lib/fonts";
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-});
+
 
 
 export const metadata: Metadata = {
