@@ -13,7 +13,24 @@ datasource db {
 }
 
 model Quote {
-  id String @unique @id @default(uuid())
-  quote String
+  id     String  @id @unique @default(uuid())
+  quote  String
   author String
+  game   Game?   @relation(fields: [gameId], references: [id])
+  gameId String?
+}
+
+model FakeQuote {
+  id        String  @id @unique @default(uuid())
+  quote     String
+  realQuote String
+  author    String
+  game      Game?   @relation(fields: [gameId], references: [id])
+  gameId    String?
+}
+
+model Game {
+  id         String      @id @unique @default(uuid())
+  realQuotes Quote[]
+  fakeQuotes FakeQuote[]
 }
