@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { PrimaryButton } from "./components/button";
 import { ArrowRightIcon } from "lucide-react";
+import { seed } from "./lib/seed";
 
 export default function Home() {
   return (
