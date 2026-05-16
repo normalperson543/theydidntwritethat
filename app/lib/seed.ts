@@ -9,5 +9,6 @@ export async function seed() {
         author: quotes[i].author
       }
     })
+    console.log(i)
   }
 }

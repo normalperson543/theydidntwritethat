@@ -33,4 +33,5 @@ model Game {
   id         String      @id @unique @default(uuid())
   realQuotes Quote[]
   fakeQuotes FakeQuote[]
+  dateCreated DateTime @default(now())
 }
