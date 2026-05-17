@@ -39,7 +39,8 @@ model Game {
 model Activity {
   id          String   @id @unique @default(uuid())
   quoteType   Boolean
-  isCorrect   Boolean
+  answer      Boolean
+  actual      Boolean
   timeElapsed Float
   dateCreated DateTime @default(now())
 }

@@ -1,5 +1,13 @@
 "use client";
-import { ArrowRight, CheckIcon, ClockIcon, MessageSquareIcon, XIcon } from "lucide-react";
+import {
+  ArrowRight,
+  CheckIcon,
+  ClockIcon,
+  MessageSquareIcon,
+  TargetIcon,
+  UserIcon,
+  XIcon,
+} from "lucide-react";
 import CircleProgress from "../components/circle-progress";
 import { pfDisplay } from "../lib/fonts";
 import { PrimaryButton } from "../components/button";
@@ -11,7 +19,11 @@ import { ConstructiveBanner, DestructiveBanner } from "../components/banner";
 export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
   const [currentQuote, setCurrentQuote] = useState(0);
   const [answerType, setAnswerType] = useState(false);
-  const [progressStatus, setProgressStatus] = useState(Array.from({ length: 10 }, () => 0));
+  const [progressStatus, setProgressStatus] = useState(
+    Array.from({ length: 10 }, () => 0),
+  );
+  const [answeredAiButReal, setAnsweredAiButReal] = useState(0);
+  const [answeredRealButAi, setAnsweredRealButAi] = useState(0);
 
   function handleAnswer(answeredReal: boolean) {
     if (
@@ -23,6 +35,11 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
       tempProgressStatus[currentQuote] = 2;
       setProgressStatus(tempProgressStatus);
       setAnswerType(answeredReal);
+      if ("realQuote" in quotes[currentQuote] && answeredReal) {
+        setAnsweredRealButAi(answeredRealButAi + 1);
+      } else {
+        setAnsweredAiButReal(answeredAiButReal + 1);
+      }
     }
     if (
       (!("realQuote" in quotes[currentQuote]) && answeredReal) ||
@@ -37,7 +54,7 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
   }
 
   function moveOn() {
-    setCurrentQuote(currentQuote + 1)
+    setCurrentQuote(currentQuote + 1);
   }
   return (
     <div className="relative h-full w-full flex justify-center items-center">
@@ -54,89 +71,173 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
           0:09
         </div>
       </div>
-      <div className="flex flex-col gap-4 justify-center items-center w-2/3 p-8">
-        
-        <div className="flex flex-col gap-4 w-full">
-          <div className={`text-3xl font-bold ${pfDisplay.className}`}>
-            {quotes[currentQuote].quote}
+      {currentQuote === 10 && (
+        <div className="flex flex-col gap-4">
+          <h2 className="text-3xl">That&apos;s a wrap!</h2>
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center text-green-700">
+                <CheckIcon />
+                <p className="text-2xl font-bold">
+                  {progressStatus.filter((s) => s === 1).length}
+                </p>
+              </div>
+              <p>correct</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center text-red-700">
+                <XIcon />
+                <p className="text-2xl font-bold">
+                  {progressStatus.filter((s) => s === 2).length}
+                </p>
+              </div>
+              <p>incorrect</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                <TargetIcon />
+                <p className="text-2xl font-bold">
+                  {progressStatus.filter((s) => s === 1).length * 10}%
+                </p>
+              </div>
+              <p>accuracy</p>
+            </div>
           </div>
-          <div className="text-xl text-right">
-            {quotes[currentQuote].author}
-          </div>
-          {progressStatus[currentQuote] === 0 && (
-            <div className="flex justify-around items-center w-full">
-              <div className="flex flex-col gap-2">
-                <PrimaryButton onClick={() => handleAnswer(true)}>
-                  <CheckIcon />
-                  This is real
-                </PrimaryButton>
-                I think {quotes[currentQuote].author} said this quote.
-              </div>
-              <div className="flex flex-col gap-2">
-                <PrimaryButton onClick={() => handleAnswer(false)}>
-                  <XIcon />
-                  This is fake
-                </PrimaryButton>
-                {quotes[currentQuote].author} never said this quote.
-              </div>
-            </div>
-          )}
-          {progressStatus[currentQuote] === 1 && (
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-4 items-center text-gray-700">
-                <MessageSquareIcon />
-                <p>you said this quote was {answerType ? "real" : "fake"}</p>
-              </div>
-              <ConstructiveBanner>
-                <div className="flex gap-2 items-center">
-                  <CheckIcon />
-                  <p>
-                    <b>Nice!</b>{" "}
-                    {answerType
-                      ? "This was a quote said by the author."
-                      : "This quote was generated by AI."}
-                  </p>
-                </div>
-                {!answerType &&
-                  <p>The real quote was: {"realQuote" in quotes[currentQuote] && quotes[currentQuote].realQuote}</p>
-                }
-              </ConstructiveBanner>
-              <div className="self-end">
-                <PrimaryButton onClick={moveOn}>
-                  <ArrowRight /> move on...
-                </PrimaryButton>
-              </div>
-            </div>
-          )}
-          {progressStatus[currentQuote] === 2 && (
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-4 items-center text-gray-700">
-                <MessageSquareIcon />
-                <p>you said this quote was {answerType ? "real" : "fake"}</p>
-              </div>
-              <DestructiveBanner>
-                <div className="flex gap-2 items-center">
-                  <XIcon />
-                  <p>
-                    <b>Whoops!</b>{" "}
-                    {answerType
-                      ? "This quote was generated by AI."
-                      : "This was a quote said by the author."}
-                  </p>
-                </div>
-                {answerType &&
-                  <p>The real quote was: {"realQuote" in quotes[currentQuote] && quotes[currentQuote].realQuote}</p>
-                }
-              </DestructiveBanner>
-              <div className="self-end">
-                <PrimaryButton onClick={moveOn}>
-                  <ArrowRight /> move on...
-                </PrimaryButton>
-              </div>
-            </div>
+          <p>
+            You said <b>{answeredRealButAi}</b> AI quotes were real quotes, and{" "}
+            <b>{answeredAiButReal}</b> real quotes were written by AI.
+          </p>
+          <h3 className="text-2xl">How you compare</h3>
+          <p>
+            Your accuracy ({progressStatus.filter((s) => s === 1).length * 10}%)
+          </p>
+          <div
+            style={{
+              background: `linear-gradient(to right,#f88900 ${String(
+                progressStatus.filter((s) => s === 1).length * 10,
+              )}%, #462708 ${progressStatus.filter((s) => s === 1).length * 10}%)`,
+            }}
+            className="
+                  w-full p-1 text-center font-bold text-5xl rounded-full"
+          ></div>
+          <p>
+            Global accuracy ({progressStatus.filter((s) => s === 1).length * 10}
+            %)
+          </p>
+          <div
+            style={{
+              background: `linear-gradient(to right,#f88900 ${String(
+                progressStatus.filter((s) => s === 1).length * 10,
+              )}%, #462708 ${progressStatus.filter((s) => s === 1).length * 10}%)`,
+            }}
+            className="
+                  w-full p-1 text-center font-bold text-5xl rounded-full"
+          ></div>
+          {isCreating ? (
+            <DisabledButton>
+              <HourglassIcon />
+              creating...
+            </DisabledButton>
+          ) : (
+            <PrimaryButton onClick={handleCreate}>
+              <ArrowRightIcon />
+              start a game
+            </PrimaryButton>
           )}
         </div>
-      </div>
+      )}
+      {currentQuote < 10 && (
+        <div className="flex flex-col gap-4 justify-center items-center w-2/3 p-8">
+          <div className="flex flex-col gap-4 w-full">
+            <div className={`text-3xl font-bold ${pfDisplay.className}`}>
+              {quotes[currentQuote].quote}
+            </div>
+            <div className="text-xl text-right">
+              {quotes[currentQuote].author}
+            </div>
+            {progressStatus[currentQuote] === 0 && (
+              <div className="flex justify-around items-center w-full">
+                <div className="flex flex-col gap-2">
+                  <PrimaryButton onClick={() => handleAnswer(true)}>
+                    <CheckIcon />
+                    This is real
+                  </PrimaryButton>
+                  I think {quotes[currentQuote].author} said this quote.
+                </div>
+                <div className="flex flex-col gap-2">
+                  <PrimaryButton onClick={() => handleAnswer(false)}>
+                    <XIcon />
+                    This is fake
+                  </PrimaryButton>
+                  {quotes[currentQuote].author} never said this quote.
+                </div>
+              </div>
+            )}
+            {progressStatus[currentQuote] === 1 && (
+              <div className="flex flex-col gap-4">
+                <div className="flex gap-4 items-center text-gray-700">
+                  <MessageSquareIcon />
+                  <p>you said this quote was {answerType ? "real" : "fake"}</p>
+                </div>
+                <ConstructiveBanner>
+                  <div className="flex gap-2 items-center">
+                    <CheckIcon />
+                    <p>
+                      <b>Nice!</b>{" "}
+                      {answerType
+                        ? "This was a quote said by the author."
+                        : "This quote was generated by AI."}
+                    </p>
+                  </div>
+                  {!answerType && (
+                    <p>
+                      The real quote was:{" "}
+                      {"realQuote" in quotes[currentQuote] &&
+                        quotes[currentQuote].realQuote}
+                    </p>
+                  )}
+                </ConstructiveBanner>
+                <div className="self-end">
+                  <PrimaryButton onClick={moveOn}>
+                    <ArrowRight /> move on...
+                  </PrimaryButton>
+                </div>
+              </div>
+            )}
+            {progressStatus[currentQuote] === 2 && (
+              <div className="flex flex-col gap-4">
+                <div className="flex gap-4 items-center text-gray-700">
+                  <MessageSquareIcon />
+                  <p>you said this quote was {answerType ? "real" : "fake"}</p>
+                </div>
+                <DestructiveBanner>
+                  <div className="flex gap-2 items-center">
+                    <XIcon />
+                    <p>
+                      <b>Whoops!</b>{" "}
+                      {answerType
+                        ? "This quote was generated by AI."
+                        : "This was a quote said by the author."}
+                    </p>
+                  </div>
+                  {answerType && (
+                    <p>
+                      The real quote was:{" "}
+                      {"realQuote" in quotes[currentQuote] &&
+                        quotes[currentQuote].realQuote}
+                    </p>
+                  )}
+                </DestructiveBanner>
+                <div className="self-end">
+                  <PrimaryButton onClick={moveOn}>
+                    <ArrowRight /> move on...
+                  </PrimaryButton>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
