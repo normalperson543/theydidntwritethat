@@ -9,7 +9,7 @@ export async function getGame(id: string) {
     },
     include: {
       realQuotes: {
-        include: {
+        select: {
           quote: true
         }
       },

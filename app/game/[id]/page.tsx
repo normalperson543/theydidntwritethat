@@ -8,7 +8,8 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
   const game = await getGame(id)
   if (!game) notFound()
   
-  const combined = [...game.fakeQuotes, ...game.realQuotes].sort(() => Math.random() - 0.5);
+  const combined = [...game.fakeQuotes, ...game.realQuotes.map((gq) => gq.quote)].sort(() => Math.random() - 0.5);
 
+  console.log(combined)
   return <Game quotes={combined} />
 }
