@@ -12,7 +12,7 @@ export async function initGame() {
       skip: Math.floor(Math.random() * quoteCount),
     });
     quotes.push(item);
-    quotesConcat += `${item}\n`
+    quotesConcat += `${item?.quote}\n`
   }
   
   const client = new OpenAI({
@@ -21,7 +21,7 @@ export async function initGame() {
   });
   const response = await client.responses.create({
     model: process.env["OPENAI_MODEL"],
-    input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Keep the same length as the original quote. Separate each quote in between with two slashes ("//"), and keep the quotes in a separate line. Do NOT add explanations. Do NOT surround the rephrased quotes with quotation marks. Do NOT add additional numbers, bullet points, or lists to your answer.\n${quotesConcat}`,
+    input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Keep the same length as the original quote. Separate each quote in between with two slashes ("//"), and keep the quotes on the same line. Do NOT add explanations. Do NOT surround the rephrased quotes with quotation marks. Do NOT add additional numbers, bullet points, or lists to your answer.\n${quotesConcat}`,
   });
   const out = response.output_text.replace('"', "").replace("–", "-").replace("—","-");
   console.log(out)
@@ -36,16 +36,19 @@ export async function initGame() {
           quote: outQuotes[i],
           author: (quotes[i]?.author as string).substring(0, ),
           realQuote: quotes[i]?.quote as string,
-          gameId: game.id,
+          game: {
+            connect: {
+              id: game.id
+            }
+          }
         },
       });
     } else {
-      await prisma.quote.create({
+      await prisma.gameQuote.create({
         data: {
-          quote: quotes[i]?.quote as string,
-          author: quotes[i]?.author as string,
-          gameId: game.id,
-        },
+          gameId: game.id as string,
+          quoteId: quotes[i]?.id as string
+        }
       });
     }
   }

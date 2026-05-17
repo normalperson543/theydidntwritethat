@@ -26,6 +26,7 @@ export default function Home() {
             start a game
           </PrimaryButton>
         )}
+        <button onClick={seed}>seed!</button>
       </div>
     </div>
   );

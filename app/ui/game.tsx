@@ -41,7 +41,7 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
   }
   return (
     <div className="relative h-full w-full flex justify-center items-center">
-      <div className="flex flex-col gap-4 justify-center items-center w-2/3 p-8">
+      <div className="flex flex-col gap-4 justify-center items-center absolute top-4">
         <div className="flex gap-12 items-center">
           {progressStatus.map((p, i) => (
             <CircleProgress status={p} key={i}>
@@ -53,6 +53,9 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
           <ClockIcon width={16} height={16} />
           0:09
         </div>
+      </div>
+      <div className="flex flex-col gap-4 justify-center items-center w-2/3 p-8">
+        
         <div className="flex flex-col gap-4 w-full">
           <div className={`text-3xl font-bold ${pfDisplay.className}`}>
             {quotes[currentQuote].quote}

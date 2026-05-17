@@ -3,13 +3,19 @@
 import { prisma } from "./db"
 
 export async function getGame(id: string) {
-  return await prisma.game.findUnique({
+  const game = await prisma.game.findUnique({
     where: {
       id: id
     },
     include: {
-      realQuotes: true,
+      realQuotes: {
+        include: {
+          quote: true
+        }
+      },
       fakeQuotes: true
     }
   })
+  console.log(game)
+  return game
 }
