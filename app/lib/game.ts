@@ -21,10 +21,10 @@ export async function initGame() {
   });
   const response = await client.responses.create({
     model: process.env["OPENAI_MODEL"],
-    input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Keep the same length as the original quote. Separate each quote in between with two slashes ("//"), and keep the quotes on the same line. Do NOT add explanations. Do NOT surround the rephrased quotes with quotation marks. Do NOT add additional numbers, bullet points, or lists to your answer.\n${quotesConcat}`,
+    input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Keep the same length as the original quote. Separate each quote in between with two slashes ("//"), and keep the quotes on the same line. Do NOT add explanations. Do NOT surround the rephrased quotes with quotation marks. Do NOT add additional numbers, bullet points, or lists to your answer. Add proper punctuation to each rephrased quote.\n${quotesConcat}`,
   });
   console.log('output')
-  const out = response.output_text.replace('"', "").replace("–", "-").replace("—","-");
+  const out = response.output_text.replace("–", " - ").replace("—","-");
   console.log(out)
   console.log("Out quotes")
   const outQuotes = out.split("//");

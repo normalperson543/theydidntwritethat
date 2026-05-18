@@ -1,20 +1,22 @@
 "use client";
 import {
   ArrowRight,
+  ArrowRightIcon,
   CheckIcon,
   ClockIcon,
+  HourglassIcon,
   MessageSquareIcon,
   TargetIcon,
-  UserIcon,
   XIcon,
 } from "lucide-react";
 import CircleProgress from "../components/circle-progress";
 import { pfDisplay } from "../lib/fonts";
-import { PrimaryButton } from "../components/button";
-import { FakeQuote, Game, Quote } from "../generated/prisma/client";
-import { useState } from "react";
-import { GameWithQuotes } from "../lib/types";
+import { DisabledButton, PrimaryButton } from "../components/button";
+import { FakeQuote, Quote } from "../generated/prisma/client";
+import { useEffect, useRef, useState } from "react";
 import { ConstructiveBanner, DestructiveBanner } from "../components/banner";
+import { initGame } from "../lib/game";
+import { submitActivity } from "../lib/actions";
 
 export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
   const [currentQuote, setCurrentQuote] = useState(0);
@@ -24,12 +26,45 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
   );
   const [answeredAiButReal, setAnsweredAiButReal] = useState(0);
   const [answeredRealButAi, setAnsweredRealButAi] = useState(0);
+  const [isCreating, setIsCreating] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [timeElapsed, setTimeElapsed] = useState(0);
 
-  function handleAnswer(answeredReal: boolean) {
-    if (
-      ("realQuote" in quotes[currentQuote] && answeredReal) ||
-      (!("realQuote" in quotes[currentQuote]) && !answeredReal)
-    ) {
+  const intervalId = useRef<NodeJS.Timeout | undefined>(undefined);
+  const timeStart = useRef<number>(0);
+
+  function startTimer() {
+    stopTimers();
+    timeStart.current = Date.now();
+    setStarted(true);
+    resumeTimer();
+  }
+
+  function resumeTimer() {
+    intervalId.current = setInterval(() => {
+      setTimeElapsed(Date.now() - timeStart.current);
+    }, 100);
+  }
+
+  function stopTimers() {
+    clearInterval(intervalId.current);
+  }
+
+  async function handleCreate() {
+    setIsCreating(true);
+    initGame();
+  }
+  async function handleAnswer(answeredReal: boolean) {
+    stopTimers();
+    const isReal = !("realQuote" in quotes[currentQuote])
+    if (isReal === answeredReal || !isReal !== !answeredReal) {
+      // correct
+      const tempProgressStatus = [...progressStatus];
+      tempProgressStatus[currentQuote] = 1;
+      setProgressStatus(tempProgressStatus);
+      setAnswerType(answeredReal);
+    }
+    else {
       // wrong
       const tempProgressStatus = [...progressStatus];
       tempProgressStatus[currentQuote] = 2;
@@ -41,21 +76,19 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
         setAnsweredAiButReal(answeredAiButReal + 1);
       }
     }
-    if (
-      (!("realQuote" in quotes[currentQuote]) && answeredReal) ||
-      ("realQuote" in quotes[currentQuote] && !answeredReal)
-    ) {
-      // correct
-      const tempProgressStatus = [...progressStatus];
-      tempProgressStatus[currentQuote] = 1;
-      setProgressStatus(tempProgressStatus);
-      setAnswerType(answeredReal);
-    }
+    await submitActivity(isReal, answeredReal, Date.now() - timeStart.current)
   }
 
   function moveOn() {
+    if (currentQuote < 10) {
+      startTimer();
+    } 
     setCurrentQuote(currentQuote + 1);
   }
+
+  useEffect(() => {
+    startTimer()
+  }, [])
   return (
     <div className="relative h-full w-full flex justify-center items-center">
       <div className="flex flex-col gap-4 justify-center items-center absolute top-4">
@@ -68,7 +101,8 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
         </div>
         <div className="flex gap-8 items-center text-gray-400 justify-center">
           <ClockIcon width={16} height={16} />
-          0:09
+          {Math.floor(timeElapsed / 60000)}:
+          {String(Math.floor((timeElapsed % 60000) / 1000)).padStart(2, "0")}
         </div>
       </div>
       {currentQuote === 10 && (
@@ -141,7 +175,7 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
           ) : (
             <PrimaryButton onClick={handleCreate}>
               <ArrowRightIcon />
-              start a game
+              play again!
             </PrimaryButton>
           )}
         </div>
