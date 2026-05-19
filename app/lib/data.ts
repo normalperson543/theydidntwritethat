@@ -35,3 +35,7 @@ export async function getGlobalAccuracy() {
   const allCount = await prisma.activity.count()
   return (trueCount + falseCount) / allCount
 }
+export async function getActivityCount() {
+  const count = await prisma.activity.count()
+  return count;
+}

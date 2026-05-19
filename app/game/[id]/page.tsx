@@ -10,7 +10,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
   
   const combined = [...game.fakeQuotes, ...game.realQuotes.map((gq) => gq.quote)].sort(() => Math.random() - 0.5);
 
-  const globalAcc = Math.round(await getGlobalAccuracy() * 10) / 10;
-  console.log(combined)
+  const globalAcc = Math.round(await getGlobalAccuracy() * 1000) / 1000;
+  
   return <Game quotes={combined} globalAccuracy={globalAcc} />
 }

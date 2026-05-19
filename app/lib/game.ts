@@ -33,10 +33,15 @@ export async function initGame() {
   for (let i = 0; i < quotesCount; i++) {
     if (Math.random() > 0.5) {
       console.log(outQuotes[i])
+      const quote =  outQuotes[i]
+      let quoteLastLetter = quote.substring(quote.length - 1);
+      if (quoteLastLetter !== "." && quoteLastLetter !== "?" && quoteLastLetter !== "!") {
+        quoteLastLetter += "."
+      }
       await prisma.fakeQuote.create({
         data: {
-          quote: outQuotes[i],
-          author: (quotes[i]?.author as string).substring(0, ),
+          quote: quote,
+          author: quotes[i]?.author as string,
           realQuote: quotes[i]?.quote as string,
           game: {
             connect: {

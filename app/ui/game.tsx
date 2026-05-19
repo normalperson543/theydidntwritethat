@@ -17,8 +17,15 @@ import { useEffect, useRef, useState } from "react";
 import { ConstructiveBanner, DestructiveBanner } from "../components/banner";
 import { initGame } from "../lib/game";
 import { submitActivity } from "../lib/actions";
+import CreateGameButton from "./create-game";
 
-export default function GameUI({ quotes, globalAccuracy }: { quotes: (Quote | FakeQuote)[], globalAccuracy: number }) {
+export default function GameUI({
+  quotes,
+  globalAccuracy,
+}: {
+  quotes: (Quote | FakeQuote)[];
+  globalAccuracy: number;
+}) {
   const [currentQuote, setCurrentQuote] = useState(0);
   const [answerType, setAnswerType] = useState(false);
   const [progressStatus, setProgressStatus] = useState(
@@ -26,13 +33,15 @@ export default function GameUI({ quotes, globalAccuracy }: { quotes: (Quote | Fa
   );
   const [answeredAiButReal, setAnsweredAiButReal] = useState(0);
   const [answeredRealButAi, setAnsweredRealButAi] = useState(0);
-  const [isCreating, setIsCreating] = useState(false);
   const [started, setStarted] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
 
   const intervalId = useRef<NodeJS.Timeout | undefined>(undefined);
   const timeStart = useRef<number>(0);
+
+  const correctAudio = new Audio("/correct.mp3")
+  const wrongAudio = new Audio("/wrong.mp3")
 
   function startTimer() {
     stopTimers();
@@ -51,10 +60,6 @@ export default function GameUI({ quotes, globalAccuracy }: { quotes: (Quote | Fa
     clearInterval(intervalId.current);
   }
 
-  async function handleCreate() {
-    setIsCreating(true);
-    initGame();
-  }
   async function handleAnswer(answeredReal: boolean) {
     setTotalTime(totalTime + Date.now() - timeStart.current);
     stopTimers();
@@ -65,6 +70,7 @@ export default function GameUI({ quotes, globalAccuracy }: { quotes: (Quote | Fa
       tempProgressStatus[currentQuote] = 1;
       setProgressStatus(tempProgressStatus);
       setAnswerType(answeredReal);
+      correctAudio.play()
     } else {
       // wrong
       const tempProgressStatus = [...progressStatus];
@@ -76,6 +82,7 @@ export default function GameUI({ quotes, globalAccuracy }: { quotes: (Quote | Fa
       } else {
         setAnsweredAiButReal(answeredAiButReal + 1);
       }
+      wrongAudio.play()
     }
     await submitActivity(isReal, answeredReal, Date.now() - timeStart.current);
   }
@@ -183,17 +190,7 @@ export default function GameUI({ quotes, globalAccuracy }: { quotes: (Quote | Fa
             className="
                   w-full p-1 text-center font-bold text-5xl rounded-full"
           ></div>
-          {isCreating ? (
-            <DisabledButton>
-              <HourglassIcon />
-              creating...
-            </DisabledButton>
-          ) : (
-            <PrimaryButton onClick={handleCreate}>
-              <ArrowRightIcon />
-              play again!
-            </PrimaryButton>
-          )}
+          <CreateGameButton />
         </div>
       )}
       {currentQuote < 10 && (
