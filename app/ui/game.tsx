@@ -18,7 +18,7 @@ import { ConstructiveBanner, DestructiveBanner } from "../components/banner";
 import { initGame } from "../lib/game";
 import { submitActivity } from "../lib/actions";
 
-export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
+export default function GameUI({ quotes, globalAccuracy }: { quotes: (Quote | FakeQuote)[], globalAccuracy: number }) {
   const [currentQuote, setCurrentQuote] = useState(0);
   const [answerType, setAnswerType] = useState(false);
   const [progressStatus, setProgressStatus] = useState(
@@ -29,6 +29,7 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
   const [isCreating, setIsCreating] = useState(false);
   const [started, setStarted] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
 
   const intervalId = useRef<NodeJS.Timeout | undefined>(undefined);
   const timeStart = useRef<number>(0);
@@ -55,16 +56,16 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
     initGame();
   }
   async function handleAnswer(answeredReal: boolean) {
+    setTotalTime(totalTime + Date.now() - timeStart.current);
     stopTimers();
-    const isReal = !("realQuote" in quotes[currentQuote])
-    if (isReal === answeredReal || !isReal !== !answeredReal) {
+    const isReal = !("realQuote" in quotes[currentQuote]);
+    if (isReal === answeredReal) {
       // correct
       const tempProgressStatus = [...progressStatus];
       tempProgressStatus[currentQuote] = 1;
       setProgressStatus(tempProgressStatus);
       setAnswerType(answeredReal);
-    }
-    else {
+    } else {
       // wrong
       const tempProgressStatus = [...progressStatus];
       tempProgressStatus[currentQuote] = 2;
@@ -76,19 +77,21 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
         setAnsweredAiButReal(answeredAiButReal + 1);
       }
     }
-    await submitActivity(isReal, answeredReal, Date.now() - timeStart.current)
+    await submitActivity(isReal, answeredReal, Date.now() - timeStart.current);
   }
 
   function moveOn() {
     if (currentQuote < 10) {
       startTimer();
-    } 
+    }
     setCurrentQuote(currentQuote + 1);
   }
 
+  const averageTime = totalTime / 10;
+
   useEffect(() => {
-    startTimer()
-  }, [])
+    startTimer();
+  }, []);
   return (
     <div className="relative h-full w-full flex justify-center items-center">
       <div className="flex flex-col gap-4 justify-center items-center absolute top-4">
@@ -136,6 +139,19 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
               </div>
               <p>accuracy</p>
             </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                <ClockIcon />
+                <p className="text-2xl font-bold">
+                  {Math.floor(averageTime / 60000)}:
+                  {String(Math.floor((averageTime % 60000) / 1000)).padStart(
+                    2,
+                    "0",
+                  )}
+                </p>
+              </div>
+              <p>average time</p>
+            </div>
           </div>
           <p>
             You said <b>{answeredRealButAi}</b> AI quotes were real quotes, and{" "}
@@ -155,14 +171,14 @@ export default function GameUI({ quotes }: { quotes: (Quote | FakeQuote)[] }) {
                   w-full p-1 text-center font-bold text-5xl rounded-full"
           ></div>
           <p>
-            Global accuracy ({progressStatus.filter((s) => s === 1).length * 10}
+            Global accuracy ({globalAccuracy * 100}
             %)
           </p>
           <div
             style={{
               background: `linear-gradient(to right,#f88900 ${String(
-                progressStatus.filter((s) => s === 1).length * 10,
-              )}%, #462708 ${progressStatus.filter((s) => s === 1).length * 10}%)`,
+                globalAccuracy * 100,
+              )}%, #462708 ${globalAccuracy * 100}%)`,
             }}
             className="
                   w-full p-1 text-center font-bold text-5xl rounded-full"

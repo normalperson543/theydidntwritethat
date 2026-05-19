@@ -1,5 +1,5 @@
 'use server'
-import { getGame } from "@/app/lib/data";
+import { getGame, getGlobalAccuracy } from "@/app/lib/data";
 import Game from "@/app/ui/game";
 import { notFound } from "next/navigation";
 
@@ -10,6 +10,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
   
   const combined = [...game.fakeQuotes, ...game.realQuotes.map((gq) => gq.quote)].sort(() => Math.random() - 0.5);
 
+  const globalAcc = Math.round(await getGlobalAccuracy() * 10) / 10;
   console.log(combined)
-  return <Game quotes={combined} />
+  return <Game quotes={combined} globalAccuracy={globalAcc} />
 }

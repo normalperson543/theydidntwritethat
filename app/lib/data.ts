@@ -19,3 +19,19 @@ export async function getGame(id: string) {
   console.log(game)
   return game
 }
+export async function getGlobalAccuracy() {
+  const trueCount = await prisma.activity.count({
+    where: {
+      quoteType: true,
+      answer: true
+    }
+  })
+  const falseCount = await prisma.activity.count({
+    where: {
+      quoteType: false,
+      answer: false
+    }
+  })
+  const allCount = await prisma.activity.count()
+  return (trueCount + falseCount) / allCount
+}
