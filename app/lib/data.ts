@@ -16,7 +16,6 @@ export async function getGame(id: string) {
       fakeQuotes: true
     }
   })
-  console.log(game)
   return game
 }
 export async function getGlobalAccuracy() {

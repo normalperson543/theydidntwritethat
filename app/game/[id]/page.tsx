@@ -8,6 +8,7 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
   const game = await getGame(id)
   if (!game) notFound()
   
+  //eslint-disable-next-line react-hooks/purity
   const combined = [...game.fakeQuotes, ...game.realQuotes.map((gq) => gq.quote)].sort(() => Math.random() - 0.5);
 
   const globalAcc = Math.round(await getGlobalAccuracy() * 1000) / 1000;

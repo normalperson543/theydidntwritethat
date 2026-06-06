@@ -1,20 +1,17 @@
 "use client";
-import { ArrowRightIcon, HourglassIcon } from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
 import { DisabledButton, PrimaryButton } from "../components/button";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { initGame } from "../lib/game";
 import Spinner from "./spinner";
 
 export default function CreateGameButton() {
   const [isCreating, setIsCreating] = useState(false);
 
-  let startAudio: HTMLAudioElement;
-  if (window !== undefined) {
-    startAudio = new Audio("/start.mp3");
-  }
+  const startAudio = useRef(new Audio("/start.mp3"));
   async function handleCreate() {
     setIsCreating(true);
-    startAudio.play();
+    startAudio.current?.play();
     try {
       initGame();
     } catch {

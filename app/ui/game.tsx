@@ -1,21 +1,18 @@
 "use client";
 import {
   ArrowRight,
-  ArrowRightIcon,
   CheckIcon,
   ClockIcon,
-  HourglassIcon,
   MessageSquareIcon,
   TargetIcon,
   XIcon,
 } from "lucide-react";
 import CircleProgress from "../components/circle-progress";
 import { pfDisplay } from "../lib/fonts";
-import { DisabledButton, PrimaryButton } from "../components/button";
+import { PrimaryButton } from "../components/button";
 import { FakeQuote, Quote } from "../generated/prisma/client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ConstructiveBanner, DestructiveBanner } from "../components/banner";
-import { initGame } from "../lib/game";
 import { submitActivity } from "../lib/actions";
 import CreateGameButton from "./create-game";
 
@@ -26,29 +23,27 @@ export default function GameUI({
   quotes: (Quote | FakeQuote)[];
   globalAccuracy: number;
 }) {
-  const [currentQuote, setCurrentQuote] = useState(0);
+  const [currentQuote, setCurrentQuote] = useState(-1);
   const [answerType, setAnswerType] = useState(false);
   const [progressStatus, setProgressStatus] = useState(
     Array.from({ length: 10 }, () => 0),
   );
   const [answeredAiButReal, setAnsweredAiButReal] = useState(0);
   const [answeredRealButAi, setAnsweredRealButAi] = useState(0);
-  const [started, setStarted] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
 
   const intervalId = useRef<NodeJS.Timeout | undefined>(undefined);
   const timeStart = useRef<number>(0);
 
-  const correctAudio = new Audio("/correct.mp3")
-  const wrongAudio = new Audio("/wrong.mp3")
-  const completeAudio = new Audio("/complete.mp3")
-  const music = new Audio("")
+  const correctAudio = useRef(new Audio("/correct.mp3"));
+  const wrongAudio = useRef(new Audio("/wrong.mp3"));
+  const completeAudio = useRef(new Audio("/complete.mp3"));
+  const music = useRef(new Audio("/ingame.wav"));
 
   function startTimer() {
     stopTimers();
     timeStart.current = Date.now();
-    setStarted(true);
     resumeTimer();
   }
 
@@ -65,7 +60,7 @@ export default function GameUI({
   async function handleAnswer(answeredReal: boolean) {
     setTotalTime(totalTime + Date.now() - timeStart.current);
     stopTimers();
-    music.pause()
+    music.current.pause();
     const isReal = !("realQuote" in quotes[currentQuote]);
     if (isReal === answeredReal) {
       // correct
@@ -73,7 +68,7 @@ export default function GameUI({
       tempProgressStatus[currentQuote] = 1;
       setProgressStatus(tempProgressStatus);
       setAnswerType(answeredReal);
-      correctAudio.play()
+      correctAudio.current.play();
     } else {
       // wrong
       const tempProgressStatus = [...progressStatus];
@@ -85,7 +80,7 @@ export default function GameUI({
       } else {
         setAnsweredAiButReal(answeredAiButReal + 1);
       }
-      wrongAudio.play()
+      wrongAudio.current.play();
     }
     await submitActivity(isReal, answeredReal, Date.now() - timeStart.current);
   }
@@ -93,19 +88,20 @@ export default function GameUI({
   function moveOn() {
     if (currentQuote < 9) {
       startTimer();
+      music.current.play();
     } else {
-      completeAudio.play()
+      completeAudio.current.play();
     }
-    music.play()
+
     setCurrentQuote(currentQuote + 1);
+  }
+
+  function startGame() {
+    moveOn();
   }
 
   const averageTime = totalTime / 10;
 
-  useEffect(() => {
-    startTimer();
-    music.play();
-  }, []);
   return (
     <div className="relative h-full w-full flex justify-center items-center">
       <div className="flex flex-col gap-4 justify-center items-center absolute top-4">
@@ -122,6 +118,18 @@ export default function GameUI({
           {String(Math.floor((timeElapsed % 60000) / 1000)).padStart(2, "0")}
         </div>
       </div>
+      {currentQuote === -1 && (
+        <div className="flex flex-col gap-4 justify-center text-center">
+          <p>
+            There are 10 quotes. Choose whether the quote was said by a real
+            person or was said by AI.
+          </p>
+          <PrimaryButton onClick={startGame}>
+            <ArrowRight />
+            start!
+          </PrimaryButton>
+        </div>
+      )}
       {currentQuote === 10 && (
         <div className="flex flex-col gap-4">
           <h2 className="text-3xl">That&apos;s a wrap!</h2>
@@ -177,9 +185,9 @@ export default function GameUI({
           </p>
           <div
             style={{
-              background: `linear-gradient(to right,#f88900 ${String(
+              background: `linear-gradient(to right,#0f7eff ${String(
                 progressStatus.filter((s) => s === 1).length * 10,
-              )}%, #462708 ${progressStatus.filter((s) => s === 1).length * 10}%)`,
+              )}%, #051124 ${progressStatus.filter((s) => s === 1).length * 10}%)`,
             }}
             className="
                   w-full p-1 text-center font-bold text-5xl rounded-full"
@@ -190,9 +198,9 @@ export default function GameUI({
           </p>
           <div
             style={{
-              background: `linear-gradient(to right,#f88900 ${String(
+              background: `linear-gradient(to right,#0f7eff ${String(
                 globalAccuracy * 100,
-              )}%, #462708 ${globalAccuracy * 100}%)`,
+              )}%, #051124 ${globalAccuracy * 100}%)`,
             }}
             className="
                   w-full p-1 text-center font-bold text-5xl rounded-full"
@@ -200,7 +208,7 @@ export default function GameUI({
           <CreateGameButton />
         </div>
       )}
-      {currentQuote < 10 && (
+      {currentQuote >= 0 && currentQuote < 10 && (
         <div className="flex flex-col gap-4 justify-center items-center w-2/3 p-8">
           <div className="flex flex-col gap-4 w-full">
             <div className={`text-3xl font-bold ${pfDisplay.className}`}>

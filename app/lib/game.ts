@@ -12,9 +12,9 @@ export async function initGame() {
       skip: Math.floor(Math.random() * quoteCount),
     });
     quotes.push(item);
-    quotesConcat += `${item?.quote}\n`
+    quotesConcat += `${item?.quote}\n`;
   }
-  
+
   const client = new OpenAI({
     apiKey: process.env["OPENAI_KEY"],
     baseURL: process.env["OPENAI_BASEURL"],
@@ -23,21 +23,33 @@ export async function initGame() {
     model: process.env["OPENAI_MODEL"],
     input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Keep the same length as the original quote. Separate each quote in between with two slashes ("//"), and keep the quotes on the same line. Do NOT add explanations. Do NOT surround the rephrased quotes with quotation marks. Do NOT add additional numbers, bullet points, or lists to your answer. Add proper punctuation to each rephrased quote.\n${quotesConcat}`,
   });
-  console.log('output')
-  const out = response.output_text.replace("–", " - ").replace("—","-");
-  console.log(out)
-  console.log("Out quotes")
+  const out = response.output_text.replace("–", " - ").replace("—", "-");
   const outQuotes = out.split("//");
-  console.log(outQuotes)
   const game = await prisma.game.create({});
   for (let i = 0; i < quotesCount; i++) {
     if (Math.random() > 0.5) {
-      console.log(outQuotes[i])
-      let quote =  outQuotes[i]
-      /*const quoteLastLetter = quote.substring(quote.length - 1);
-      if (quoteLastLetter !== "." && quoteLastLetter !== "?" && quoteLastLetter !== "!") {
-        quote += "."
-      }*/
+      let quote = outQuotes[i];
+      quote = quote.replace("  \n", "");
+      const quoteLastLetter = quote.substring(quote.length - 1);
+      if (
+        quoteLastLetter !== "." &&
+        quoteLastLetter !== "?" &&
+        quoteLastLetter !== "!"
+      ) {
+        if (quoteLastLetter === " ") {
+          quote = quote.substring(0, quote.length - 1);
+          const quoteLastLetter = quote.substring(quote.length - 1);
+          if (
+            quoteLastLetter !== "." &&
+            quoteLastLetter !== "?" &&
+            quoteLastLetter !== "!"
+          ) {
+            quote += ".";
+          }
+        } else {
+          quote += ".";
+        }
+      }
       await prisma.fakeQuote.create({
         data: {
           quote: quote,
@@ -45,17 +57,17 @@ export async function initGame() {
           realQuote: quotes[i]?.quote as string,
           game: {
             connect: {
-              id: game.id
-            }
-          }
+              id: game.id,
+            },
+          },
         },
       });
     } else {
       await prisma.gameQuote.create({
         data: {
           gameId: game.id as string,
-          quoteId: quotes[i]?.id as string
-        }
+          quoteId: quotes[i]?.id as string,
+        },
       });
     }
   }
