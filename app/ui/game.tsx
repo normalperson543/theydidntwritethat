@@ -42,6 +42,8 @@ export default function GameUI({
 
   const correctAudio = new Audio("/correct.mp3")
   const wrongAudio = new Audio("/wrong.mp3")
+  const completeAudio = new Audio("/complete.mp3")
+  const music = new Audio("")
 
   function startTimer() {
     stopTimers();
@@ -63,6 +65,7 @@ export default function GameUI({
   async function handleAnswer(answeredReal: boolean) {
     setTotalTime(totalTime + Date.now() - timeStart.current);
     stopTimers();
+    music.pause()
     const isReal = !("realQuote" in quotes[currentQuote]);
     if (isReal === answeredReal) {
       // correct
@@ -88,9 +91,12 @@ export default function GameUI({
   }
 
   function moveOn() {
-    if (currentQuote < 10) {
+    if (currentQuote < 9) {
       startTimer();
+    } else {
+      completeAudio.play()
     }
+    music.play()
     setCurrentQuote(currentQuote + 1);
   }
 
@@ -98,6 +104,7 @@ export default function GameUI({
 
   useEffect(() => {
     startTimer();
+    music.play();
   }, []);
   return (
     <div className="relative h-full w-full flex justify-center items-center">

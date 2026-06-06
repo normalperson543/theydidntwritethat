@@ -33,11 +33,11 @@ export async function initGame() {
   for (let i = 0; i < quotesCount; i++) {
     if (Math.random() > 0.5) {
       console.log(outQuotes[i])
-      const quote =  outQuotes[i]
-      let quoteLastLetter = quote.substring(quote.length - 1);
+      let quote =  outQuotes[i]
+      /*const quoteLastLetter = quote.substring(quote.length - 1);
       if (quoteLastLetter !== "." && quoteLastLetter !== "?" && quoteLastLetter !== "!") {
-        quoteLastLetter += "."
-      }
+        quote += "."
+      }*/
       await prisma.fakeQuote.create({
         data: {
           quote: quote,

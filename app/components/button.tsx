@@ -7,7 +7,7 @@ export function PrimaryButton({onClick, children}: {onClick?: () => void, childr
 }
 export function DisabledButton({children}: {onClick?: () => void, children: React.ReactNode}) {
   return (
-    <button className="border-blue-100  bg-blue-50 border-3 flex flex-row gap-4 px-2 py-3 font-bold justify-center" disabled>
+    <button className="border-blue-100  bg-blue-50 border-3 flex flex-row gap-4 px-2 py-3 font-bold justify-center cursor-not-allowed" disabled>
       {children}
     </button>
   )
