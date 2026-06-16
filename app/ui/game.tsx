@@ -32,6 +32,7 @@ export default function GameUI({
   const [answeredRealButAi, setAnsweredRealButAi] = useState(0);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
+  const [model, setModel] = useState("google/gemma-4-31b-it:free");
 
   const intervalId = useRef<NodeJS.Timeout | undefined>(undefined);
   const timeStart = useRef<number>(0);
@@ -131,81 +132,113 @@ export default function GameUI({
         </div>
       )}
       {currentQuote === 10 && (
-        <div className="flex flex-col gap-4">
-          <h2 className="text-3xl">That&apos;s a wrap!</h2>
-          <div className="flex gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2 items-center text-green-700">
-                <CheckIcon />
-                <p className="text-2xl font-bold">
-                  {progressStatus.filter((s) => s === 1).length}
-                </p>
+        <div className="flex flex-row gap-4">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-3xl">That&apos;s a wrap!</h2>
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2 items-center text-green-700">
+                  <CheckIcon />
+                  <p className="text-2xl font-bold">
+                    {progressStatus.filter((s) => s === 1).length}
+                  </p>
+                </div>
+                <p>correct</p>
               </div>
-              <p>correct</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2 items-center text-red-700">
-                <XIcon />
-                <p className="text-2xl font-bold">
-                  {progressStatus.filter((s) => s === 2).length}
-                </p>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2 items-center text-red-700">
+                  <XIcon />
+                  <p className="text-2xl font-bold">
+                    {progressStatus.filter((s) => s === 2).length}
+                  </p>
+                </div>
+                <p>incorrect</p>
               </div>
-              <p>incorrect</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2 items-center">
-                <TargetIcon />
-                <p className="text-2xl font-bold">
-                  {progressStatus.filter((s) => s === 1).length * 10}%
-                </p>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2 items-center">
+                  <TargetIcon />
+                  <p className="text-2xl font-bold">
+                    {progressStatus.filter((s) => s === 1).length * 10}%
+                  </p>
+                </div>
+                <p>accuracy</p>
               </div>
-              <p>accuracy</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2 items-center">
-                <ClockIcon />
-                <p className="text-2xl font-bold">
-                  {Math.floor(averageTime / 60000)}:
-                  {String(Math.floor((averageTime % 60000) / 1000)).padStart(
-                    2,
-                    "0",
-                  )}
-                </p>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2 items-center">
+                  <ClockIcon />
+                  <p className="text-2xl font-bold">
+                    {Math.floor(averageTime / 60000)}:
+                    {String(Math.floor((averageTime % 60000) / 1000)).padStart(
+                      2,
+                      "0",
+                    )}
+                  </p>
+                </div>
+                <p>average time</p>
               </div>
-              <p>average time</p>
             </div>
+            <p>
+              You said <b>{answeredRealButAi}</b> AI quotes were real quotes,
+              and <b>{answeredAiButReal}</b> real quotes were written by AI.
+            </p>
+            <h3 className="text-2xl">How you compare</h3>
+            <p>
+              Your accuracy ({progressStatus.filter((s) => s === 1).length * 10}
+              %)
+            </p>
+            <div
+              style={{
+                background: `linear-gradient(to right,#0f7eff ${String(
+                  progressStatus.filter((s) => s === 1).length * 10,
+                )}%, #051124 ${progressStatus.filter((s) => s === 1).length * 10}%)`,
+              }}
+              className="
+                  w-full p-1 text-center font-bold text-5xl rounded-full"
+            ></div>
+            <p>
+              Global accuracy ({globalAccuracy * 100}
+              %)
+            </p>
+            <div
+              style={{
+                background: `linear-gradient(to right,#0f7eff ${String(
+                  globalAccuracy * 100,
+                )}%, #051124 ${globalAccuracy * 100}%)`,
+              }}
+              className="
+                  w-full p-1 text-center font-bold text-5xl rounded-full"
+            ></div>
+
+            <CreateGameButton model={model} />
+            <p>Change the model:</p>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="border"
+            >
+              <option value="openai/gpt-oss-120b:free">
+                openai/gpt-oss-120b
+              </option>
+              <option value="google/gemma-4-31b-it:free">
+                google/gemma-4-31b-it
+              </option>
+            </select>
           </div>
-          <p>
-            You said <b>{answeredRealButAi}</b> AI quotes were real quotes, and{" "}
-            <b>{answeredAiButReal}</b> real quotes were written by AI.
-          </p>
-          <h3 className="text-2xl">How you compare</h3>
-          <p>
-            Your accuracy ({progressStatus.filter((s) => s === 1).length * 10}%)
-          </p>
-          <div
-            style={{
-              background: `linear-gradient(to right,#0f7eff ${String(
-                progressStatus.filter((s) => s === 1).length * 10,
-              )}%, #051124 ${progressStatus.filter((s) => s === 1).length * 10}%)`,
-            }}
-            className="
-                  w-full p-1 text-center font-bold text-5xl rounded-full"
-          ></div>
-          <p>
-            Global accuracy ({globalAccuracy * 100}
-            %)
-          </p>
-          <div
-            style={{
-              background: `linear-gradient(to right,#0f7eff ${String(
-                globalAccuracy * 100,
-              )}%, #051124 ${globalAccuracy * 100}%)`,
-            }}
-            className="
-                  w-full p-1 text-center font-bold text-5xl rounded-full"
-          ></div>
-          <CreateGameButton />
+          <div className="flex flex-col gap-4 max-w-120 w-full max-h-1/2">
+            <h2>Quotes you got wrong</h2>
+            {progressStatus.map((s, i) => {
+              if (s == 2) {
+                return (
+                  <div
+                    key={i}
+                    className="bg-blue-50 border-2 border-blue-200 p-2"
+                  >
+                    <p>{quotes[i].quote}</p>
+                  </div>
+                );
+              }
+            })}
+          </div>
         </div>
       )}
       {currentQuote >= 0 && currentQuote < 10 && (

@@ -2,7 +2,15 @@
 import OpenAI from "openai";
 import { prisma } from "./db";
 import { redirect } from "next/navigation";
-export async function initGame() {
+
+const SUPPORTED_MODELS = [
+  "openai/gpt-oss-120b:free",
+  "google/gemma-4-31b-it:free",
+];
+export async function initGame(model: string) {
+  if (!SUPPORTED_MODELS.includes(model)) {
+    throw new Error("Not a supported model");
+  }
   const quoteCount = await prisma.quote.count();
   const quotes = [];
   const quotesCount = 10;
@@ -20,7 +28,7 @@ export async function initGame() {
     baseURL: process.env["OPENAI_BASEURL"],
   });
   const response = await client.responses.create({
-    model: process.env["OPENAI_MODEL"],
+    model: model,
     input: `Each of the following are quotes said by popular people. For each of the following quotes, make a slightly modified version of said quote, rephrasing it to your own words. Keep the same length as the original quote. Separate each quote in between with two slashes ("//"), and keep the quotes on the same line. Do NOT add explanations. Do NOT surround the rephrased quotes with quotation marks. Do NOT add additional numbers, bullet points, or lists to your answer. Add proper punctuation to each rephrased quote.\n${quotesConcat}`,
   });
   const out = response.output_text.replace("–", " - ").replace("—", "-");

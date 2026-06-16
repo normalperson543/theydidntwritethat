@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { initGame } from "../lib/game";
 import Spinner from "./spinner";
 
-export default function CreateGameButton() {
+export default function CreateGameButton({ model }: { model: string }) {
   const [isCreating, setIsCreating] = useState(false);
 
   const startAudio = useRef(new Audio("/start.mp3"));
@@ -13,7 +13,7 @@ export default function CreateGameButton() {
     setIsCreating(true);
     startAudio.current?.play();
     try {
-      initGame();
+      initGame(model);
     } catch {
       setIsCreating(false);
       alert(
