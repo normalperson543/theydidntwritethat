@@ -132,7 +132,7 @@ export default function GameUI({
         </div>
       )}
       {currentQuote === 10 && (
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-row gap-4 p-24 h-full">
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl">That&apos;s a wrap!</h2>
             <div className="flex gap-4">
@@ -223,8 +223,14 @@ export default function GameUI({
                 google/gemma-4-31b-it
               </option>
             </select>
+            <p className="text-gray-700">
+              &quot;Electrodoodle&quot; Kevin MacLeod (incompetech.com) Licensed
+              under Creative Commons: By Attribution 4.0 License
+              http://creativecommons.org/licenses/by/4.0/
+            </p>
+            <p className="text-gray-700">Quotes from <a href="https://huggingface.co/datasets/Abirate/english_quotes">Abirate/english_quotes</a> on Hugging Face (modified)</p>
           </div>
-          <div className="flex flex-col gap-4 max-w-120 w-full max-h-1/2">
+          <div className="flex flex-col gap-4 max-w-120 w-full h-full">
             <h2>Quotes you got wrong</h2>
             {progressStatus.map((s, i) => {
               if (s == 2) {
